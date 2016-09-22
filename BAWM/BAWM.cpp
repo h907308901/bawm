@@ -48,6 +48,7 @@ int main()
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 	JOBOBJECT_EXTENDED_LIMIT_INFORMATION eli;
+	wchar_t tmpstr[128];
 	wchar_t tmpdir[1024], wmpath[1024], respath[1024], cmd[1024], txtpath[1024], mucmd[1024];
 	// tmpdir:	temporary directory path
 	// wmpath:	winmine path (winmine.exe)
@@ -62,6 +63,10 @@ int main()
 
 	hModule = GetModuleHandle(NULL);
 	ret = GetTempPath(1024, tmpdir);
+
+	printf("Bad Apple on Winmine\n");
+	printf("https://github.com/h907308901/bawm\n");
+	printf("\n");
 
 	wcscpy_s(wmpath, tmpdir);
 	wcscpy_s(respath, tmpdir);
@@ -136,6 +141,7 @@ int main()
 	}
 
 	// create winmines
+	printf("Starting Winmines...\n");
 	ZeroMemory(&hProcess, sizeof(hProcess));
 	ZeroMemory(&hThread, sizeof(hThread));
 	x = 0;
@@ -182,11 +188,9 @@ int main()
 		}
 		Sleep(50);
 	}
-	for (i = 0; i < 6; i++) {
-		ShowWindow(hWnd[i], 1); // now show them
-	}
 
 	// open record file
+	printf("Reading Data...\n");
 	if (_wfopen_s(&file, txtpath, L"r")) {
 		printf("open output.txt failed\n");
 		goto _goexit;
@@ -201,10 +205,28 @@ int main()
 	}
 
 	// open BadApple.mp3
+	printf("Initializing music...\n");
 	ret = mciSendString(mucmd, NULL, 0, NULL);
 	if (ret) {
 		printf("open BadApple.mp3 failed with mci status %d\n", ret);
 		goto _goexit;
+	}
+
+	printf("Ready...\nPress Any Key...\n");
+	system("pause>nul");
+	printf("Start!\n");
+
+	// set captions
+	SetWindowText(hWnd[0], L"Bad Apple on Winmine");
+	SetWindowText(hWnd[1], L"By h907308901");
+	SetWindowText(hWnd[2], L"FPS:");
+	SetWindowText(hWnd[3], L"Delay:");
+	SetWindowText(hWnd[4], L"");
+	SetWindowText(hWnd[5], L"");
+
+	// show winmines
+	for (i = 0; i < 6; i++) {
+		ShowWindow(hWnd[i], 1);
 	}
 
 	// play BadApple.mp3
@@ -219,14 +241,24 @@ int main()
 	framecount = 0;
 	timeinit = GetTickCount();
 	while (!(feof(file) || bExit)) {
+		/*
 		// a stupid fps stablizer which runs after each 10 frames passed
 		// we compare the fps for the rest and the desired fps to determine SleepValue
-		if (framecount % 10 == 9) {
-			if ((TOTAL_FRAME - framecount) * TOTAL_TIME > TOTAL_FRAME * (TOTAL_TIME + timeinit - GetTickCount()))
-				SleepValue--;
-			else
-				SleepValue++;
-		}
+		if ((TOTAL_FRAME - framecount) * TOTAL_TIME > TOTAL_FRAME * (TOTAL_TIME + timeinit - GetTickCount()))
+			SleepValue--;
+		else
+			SleepValue++;
+		*/
+		// new fps stablizer
+		// adjust SleepValue according to the difference between the current frame count and the desired frame count
+		// works better than the former one
+		i = framecount - TOTAL_FRAME * (GetTickCount() - timeinit) / TOTAL_TIME;
+		SleepValue += i;
+		//printf("%d\t%d\n", i, SleepValue); // for debug
+		swprintf_s(tmpstr, L"FPS: %f", framecount * 1000.0 / (GetTickCount() - timeinit));
+		SetWindowText(hWnd[2], tmpstr);
+		swprintf_s(tmpstr, L"Delay: %d", SleepValue);
+		SetWindowText(hWnd[3], tmpstr);
 		// read data of a frame (60 lines + 1 blank line, 160 chars per line)
 		for (i = 0; i <= 60; i++) {
 			fgets(lines[i], 256, file);
@@ -262,6 +294,7 @@ int main()
 	}
 
 _goexit:
+	printf("Exiting...\n");
 	//cleanup work
 	mciSendString(L"close music", NULL, 0, NULL);
 	if (hMonThread) CloseHandle(hMonThread);
