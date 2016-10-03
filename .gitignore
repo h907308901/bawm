@@ -3,7 +3,5 @@
 *.db
 /Release/
 /BAWM/Release/
-/BAWM/res.cab
-/BAWM/winmine.exe
 /.vs/
 /ipch/
