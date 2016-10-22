@@ -199,7 +199,7 @@ int main()
 	// create monitor thread
 	bExit = FALSE;
 	hMonThread = CreateThread(NULL, 0, ThreadProc, NULL, 0, NULL);
-	if (!hThread) {
+	if (!hMonThread) {
 		printf("create monitor thread failed with last error 0x%08x\n", GetLastError());
 		goto _goexit;
 	}
@@ -300,7 +300,7 @@ _goexit:
 	if (hMonThread) CloseHandle(hMonThread);
 	if (file) fclose(file);
 	if (hJob) CloseHandle(hJob);
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 6; i++) {
 		if (hProcess[i]) CloseHandle(hProcess[i]);
 		if (hThread[i]) CloseHandle(hThread[i]);
 	}
